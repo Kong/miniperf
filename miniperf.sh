@@ -90,15 +90,17 @@ database = postgres
 pg_password = kong
 EOF
 
+kong stop -p miniperf.kong.prefix
+rm -rf miniperf.kong.prefix
+pkill nginx
+
 if ! [ "$again" ]
 then
-   kong stop -p miniperf.kong.prefix
-   rm -rf miniperf.kong.prefix
-   pkill nginx
    kong migrations reset --yes -c miniperf.kong.conf
-   kong migrations bootstrap -c miniperf.kong.conf
-   kong start -c miniperf.kong.conf
+   kong migrations bootstrap -c miniperf.kong.conf || die "Failed bootstrapping migrations."
 fi
+
+kong start -c miniperf.kong.conf || die "Failed starting Kong."
 
 curl "$KONG_ADMIN"/ &> /dev/null || die "Kong is not running."
 
