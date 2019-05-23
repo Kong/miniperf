@@ -64,11 +64,11 @@ wrk --version | grep -q wrk &> /dev/null || die "wrk is not in PATH."
 OS=$(uname -s)
 
 [ "$OS" = "Linux" ] && {
-   cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors && {
+   [ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors ] && {
       old_governor=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)
       for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
       do
-         echo "performance" | sudo tee $gov
+         echo "performance" | sudo tee $gov &> /dev/null
       done
    }
 }
@@ -248,6 +248,10 @@ openresty -p miniperf.nginx.prefix
 ################################################################################
 
 wrk_output="miniperf.$scenario.wrk.log"
+if [ "$1" = "noise" ]
+then
+   wrk_output="miniperf.$scenario.noise.wrk.log"
+fi
 
 echo "----------------------------------------" >> $wrk_output
 date >> $wrk_output
@@ -274,12 +278,12 @@ echo -n "Performing requests..."
 for (( i = 1; i <= wrk_count; i++ ))
 do
    echo -n "."
-   wrk -c $wrk_conns -t $wrk_threads -d ${wrk_duration}s -s miniperf.wrk.lua ${KONG_PROXY} >> miniperf.$scenario.wrk.log
-   echo >> miniperf.$scenario.wrk.log
+   wrk -c $wrk_conns -t $wrk_threads -d ${wrk_duration}s -s miniperf.wrk.lua ${KONG_PROXY} >> $wrk_output
+   echo >> $wrk_output
 done
 echo
 
-cat miniperf.$scenario.wrk.log
+cat $wrk_output
 
 echo $scenario > .miniperf.again
 
@@ -288,6 +292,6 @@ echo $scenario > .miniperf.again
 pkill openresty
 
 [ "$OS" = "Linux" ] && {
-   echo $old_governor | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+   echo $old_governor | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor &> /dev/null
 }
 
