@@ -262,26 +262,28 @@ git branch | grep \* | cut -d ' ' -f2 >> $wrk_output
 git log | head -n 1 >> $wrk_output
 echo "----------------------------------------" >> $wrk_output
 
-if [ "$1" = "noise" ]
-then
-(
-   for (( i = 1; i < wrk_count * wrk_duration * 10; i ++ ))
-   do
-      sleep 0.1
-      route_name=noise-r$i
-      curl $KONG_ADMIN/services/service-1/routes -d "name=$route_name" -d "paths[]=/$route_name" &> $curl_output
-      curl $KONG_ADMIN/routes/$route_name/plugins -d "name=key-auth" &> $curl_output
-   done
-) &
-fi
-
 
 echo -n "Performing requests..."
 for (( i = 1; i <= wrk_count; i++ ))
 do
+   if [ "$1" = "noise" ]
+   then
+   (
+      for (( j = 1; j < wrk_duration * 10; j++ ))
+      do
+         sleep 0.05
+         route_name=noise-w$i-r$j
+         curl $KONG_ADMIN/services/service-1/routes -d "name=$route_name" -d "paths[]=/$route_name" &> $curl_output
+         curl $KONG_ADMIN/routes/$route_name/plugins -d "name=key-auth" &> $curl_output
+      done
+   ) &
+   fi
+
    echo -n "."
    wrk -c $wrk_conns -t $wrk_threads -d ${wrk_duration}s -s miniperf.wrk.lua ${KONG_PROXY} >> $wrk_output
    echo >> $wrk_output
+
+   wait
 done
 echo
 
