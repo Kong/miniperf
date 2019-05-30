@@ -24,6 +24,12 @@ testing the impact of router and plugin iterator reconfiguration.
 
 Test output is appended to a file called `miniperf.$MODE.wrk.log`.
 
+To configure your database, use environment variables, such as:
+
+```bash
+export KONG_PG_PASSWORD=my_password
+```
+
 **Note** Running the test will reset your Kong database and re-run migrations.
 This is designed for running in a developer environment.
 

@@ -87,7 +87,6 @@ fi
 cat <<EOF > miniperf.kong.conf
 prefix = miniperf.kong.prefix
 database = postgres
-pg_password = kong
 EOF
 
 kong stop -p miniperf.kong.prefix
