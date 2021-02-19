@@ -158,7 +158,7 @@ then
    do
       service_name="service-$i"
       curl $KONG_ADMIN/services -d "name=$service_name" -d "url=$KONG_DEMO_UPSTREAM_URL" &> $curl_output
-      for plugin in "${auto_plugins[@]}"
+      for plugin in "${plugins[@]}"
       do
          add_plugin "$service_name"
       done
